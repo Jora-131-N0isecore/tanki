@@ -23,14 +23,17 @@ def show_main2():
 def create_window():
 
     root = tk.Tk()
-    root.geometry("600x600")
+    root.geometry("800x800")
     root.title("ТАНКИ2026")
+    root.resizable(False, False)
+    root.attributes('-fullscreen', True)
     global MainMenu, settings_frame, level_selection_frame
     def close_window():
         root.destroy()
 
     #крутое главное меню
     MainMenu = tk.Frame(root)
+
     tk.Label(MainMenu, text="ГЛАВНОЕ МЕНЮ", font=("Arial", 20)).pack(pady=20)
     tk.Button(MainMenu, text="Играть", font=("Arial", 10), command=show_level_settings).pack(pady=10)
     tk.Button(MainMenu, text="Настройки", font=("Arial", 10), command=show_settings).pack(pady=10)
