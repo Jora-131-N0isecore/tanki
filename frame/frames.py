@@ -22,24 +22,30 @@ def create_window():
     def close_window():
         root.destroy()
 
-
+    #тут типа подгрузка картинок крутых сам рисовал
     button_img = tk.PhotoImage(file="images/button.png")
+    logo_img = tk.PhotoImage(file="images/logo.png")
+    bok_img = tk.PhotoImage(file="images/bok.png")
 
     #крутое главное меню
     MainMenu = tk.Frame(root, bg="Black")
 
-    tk.Label(MainMenu, text="ГЛАВНОЕ МЕНЮ", font=("Arial", 20)).pack(pady=20)
+    left_bok = tk.Label(MainMenu, image=bok_img, bg="black")
+    left_bok.place(x=0, y=0, anchor="nw")
+    right_bok = tk.Label(MainMenu, image=bok_img, bg="black")
+    right_bok.place(x=root.winfo_screenwidth(), y=0, anchor="ne")
 
 
-    #tk.Button(MainMenu, text="Играть", font=("Arial", 10), command=show_level_settings).pack(pady=10)
+    logo_label = tk.Label(MainMenu, image=logo_img, bg="black")
+    logo_label.pack(pady=20)
+
+
     play_btn = tk.Button(MainMenu, image=button_img, text="Играть", font=("Arial", 15), compound="center",command=show_level_settings, relief="flat", borderwidth=0, bg="black", activebackground="black", activeforeground="white")
-    play_btn.image = button_img
     play_btn.pack(pady=10)
 
-    #tk.Button(MainMenu, text="Выход", font=("Arial", 10), command=close_window).pack(pady=10)
     exit_btn = tk.Button(MainMenu, image=button_img, text="Выход", font=("Arial", 15), compound="center", command=close_window, relief="flat", borderwidth=0, bg="black", activebackground="black", activeforeground="white")
-    exit_btn.image = button_img
     exit_btn.pack(pady=10)
+
 
     MainMenu.pack(fill="both", expand=True)
 
