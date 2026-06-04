@@ -1,5 +1,13 @@
 import tkinter as tk
+from tank import Tank
+
+
 root = tk.Tk()
+
+"""
+тут типа крч да словарь так называемый с данными об уровнях пока пустышка потом сделаю
+интересно это ктото кроме меня будет читать
+"""
 levels = {
     1: {"bricks": [], "steel": [], "eagle": (10, 10)},
     2: {"bricks": [], "steel": [], "eagle": (10, 10)},
@@ -46,6 +54,15 @@ class GameFrame(tk.Frame):
         )
         self.canvas.pack(pady=20)
 
+        self.canvas.bind_all("<KeyPress-Up>", lambda e: self.player_tank.start_move_up())
+        self.canvas.bind_all("<KeyRelease-Up>", lambda e: self.player_tank.stop_move_up())
+        self.canvas.bind_all("<KeyPress-Down>", lambda e: self.player_tank.start_move_down())
+        self.canvas.bind_all("<KeyRelease-Down>", lambda e: self.player_tank.stop_move_down())
+        self.canvas.bind_all("<KeyPress-Left>", lambda e: self.player_tank.start_move_left())
+        self.canvas.bind_all("<KeyRelease-Left>", lambda e: self.player_tank.stop_move_left())
+        self.canvas.bind_all("<KeyPress-Right>", lambda e: self.player_tank.start_move_right())
+        self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
+
     def create_map(self):
         # временная сетка чтобы откладка была удобнеэ
         for row in range(self.map_height):
@@ -63,6 +80,7 @@ class GameFrame(tk.Frame):
                 )
 
         # TODO: позже добавлю тут отрисовку кирпичей, стали и орла
+        self.player_tank = Tank(self.canvas, 300, 300, tank_type="player", size=40)
 
 
 def show_level_settings():
@@ -143,7 +161,11 @@ def create_window():
         btn.pack(pady=5)
     tk.Button(level_selection_frame, text="Назад", command=show_main2).pack(pady=20)
 
-
+    """
+    !!!!Внимание аникдот 
+    Настоящий десантник способен остановить танк с помощью малой сапёрной лопатки, 
+    а при наличии большой - и закопать.
+    """
     root.mainloop()
 
 
