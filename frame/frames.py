@@ -1,7 +1,7 @@
 import tkinter as tk
 from .tank import Tank
 from .bullet import Bullet
-
+import random
 
 root = tk.Tk()
 
@@ -13,7 +13,8 @@ levels = {
     1: {"bricks": [(5,5), (5,6), (5,7), (6,5), (6,6), (6,7), (7,5)],
          "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),
                   (2,12), (3,12), (4,12), (5,12), (6,12)],
-        "eagle": (10, 10)},
+        "eagle": (10, 10),
+        "enemies_total": 10},
     2: {"bricks": [],
         "steel": [(1,1), (2,2)],
         "eagle": (10, 10)},
@@ -50,6 +51,14 @@ class GameFrame(tk.Frame):
         self.brick_texture = None
 
         self.lives = 3
+
+        # враги
+        self.enemies = []
+        self.enemies_spawned = 0
+        self.enemies_killed = 0
+        self.enemies_total = self.level_data.get("enemies_total", 10)
+        self.max_enemies = 5
+        self.spawn_positions = [(60, 20), (540, 20), (300, 20)]
 
         self.create_widgets()
         self.load_textures()
@@ -147,6 +156,7 @@ class GameFrame(tk.Frame):
                     anchor="center",
                     tags=(f"brick_{col}_{row}",)
                 )
+        self.start_enemy_spawn()
 
 
     def load_textures(self):
@@ -155,6 +165,8 @@ class GameFrame(tk.Frame):
 
     def shoot(self):
         if not self.can_shoot:
+            return
+        if not hasattr(self, 'player_tank') or self.player_tank is None:
             return
 
         if not hasattr(self, 'player_tank'):
@@ -225,13 +237,31 @@ class GameFrame(tk.Frame):
         if self.lives <= 0:
             self.game_over()
         else:
+            # очистить все пули на поле
+            for bullet in self.bullets:
+                bullet.destroy()
+            self.bullets.clear()
             self.respawn_player()
 
     def game_over(self):
         """Конец игры"""
-        # удаляем танк
         if hasattr(self, 'player_tank') and self.player_tank:
             self.player_tank.destroy()
+
+        for enemy in self.enemies:
+            enemy.destroy()
+        self.enemies.clear()
+
+        for bullet in self.bullets:
+            bullet.destroy()
+        self.bullets.clear()
+
+        self.canvas.create_text(
+            300, 300,
+            text="ПОРАЖЕНИЕ...\nНажмите 'Назад в меню'",
+            font=("Arial", 24),
+            fill="red"
+        )
 
         # очищаем пули
         for bullet in self.bullets:
@@ -248,6 +278,97 @@ class GameFrame(tk.Frame):
             anchor="center",
             justify="center"
         )
+
+    def start_enemy_spawn(self):
+        """Запускает спавн врагов"""
+        self.spawn_enemy()
+        if self.enemies_killed < self.enemies_total:
+            self.canvas.after(3000, self.start_enemy_spawn)
+
+    def spawn_enemy(self):
+        """Создаёт одного врага"""
+        if self.enemies_killed >= self.enemies_total:
+            return
+        if self.enemies_spawned >= self.enemies_total:
+            return
+        if len(self.enemies) >= self.max_enemies:
+            return
+
+
+        x, y = random.choice(self.spawn_positions)
+
+        enemy = Tank(self.canvas, x, y, tank_type="enemy", size=40, speed=2)
+        enemy.game_frame = self  # важно!
+        enemy.direction = "down"
+        enemy.draw()
+
+        self.enemies.append(enemy)
+        self.start_enemy_ai(enemy)
+
+        self.enemies_spawned += 1
+
+    def start_enemy_ai(self, enemy):
+        """ИИ врага"""
+
+
+        def ai_loop():
+            if enemy not in self.enemies:
+                return
+
+            if not enemy.moving:
+                if random.random() < 0.7:
+                    direction = random.choice(["up", "down", "left", "right"])
+                    if direction == "up":
+                        enemy.start_move_up()
+                    elif direction == "down":
+                        enemy.start_move_down()
+                    elif direction == "left":
+                        enemy.start_move_left()
+                    elif direction == "right":
+                        enemy.start_move_right()
+
+                    def stop_enemy():
+                        if enemy in self.enemies:
+                            enemy.stop_move_up()
+                            enemy.stop_move_down()
+                            enemy.stop_move_left()
+                            enemy.stop_move_right()
+
+                    self.canvas.after(random.randint(500, 1500), stop_enemy)
+                else:
+                    self.enemy_shoot(enemy)
+
+            self.canvas.after(random.randint(800, 1500), ai_loop)
+
+        ai_loop()
+
+    def enemy_shoot(self, enemy):
+        """Выстрел врага"""
+        if not enemy or enemy not in self.enemies:
+            return
+
+        x, y = enemy.get_position()
+        direction = enemy.get_direction()
+
+        bullet = Bullet(self.canvas, x, y, direction, owner=enemy, speed=8)
+        bullet.game_frame = self
+        self.bullets.append(bullet)
+
+    def victory(self):
+        """Победа на уровне"""
+        # очищаем врагов
+        for enemy in self.enemies:
+            enemy.destroy()
+        self.enemies.clear()
+
+        # сообщение
+        self.canvas.create_text(
+            300, 300,
+            text="ПОБЕДА!",
+            font=("Arial", 24),
+            fill="green"
+        )
+
 
 
 def show_level_settings():

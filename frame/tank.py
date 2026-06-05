@@ -15,6 +15,7 @@ class Tank:
         self.moving = False
         self.target_x = x
         self.target_y = y
+        self.is_alive = True
 
         self.move_up_flag = False
         self.move_down_flag = False
@@ -26,8 +27,11 @@ class Tank:
         self.start_movement()
 
     def load_textures(self):
-        #Загрузка текстур для всех направлений
-        prefix = "player_tank" if self.tank_type == "player" else "enemy_tank"
+        """Загрузка текстур для всех направлений"""
+        if self.tank_type == "player":
+            prefix = "player_tank"
+        else:
+            prefix = "enemy_tank"
 
         directions = ["up", "down", "left", "right"]
         self.textures = {}
@@ -37,6 +41,8 @@ class Tank:
             )
 
     def draw(self):
+        if not self.is_alive:
+            return
         #Отрисовка танка с учётом направления
         if self.id:
             self.canvas.delete(self.id)
@@ -49,6 +55,8 @@ class Tank:
         )
 
     def start_movement(self):
+        if not self.is_alive:
+            return
         self.update_position()
 
     def update_position(self):
@@ -80,6 +88,8 @@ class Tank:
 
 
         if self.moving:
+            if not self.is_alive:
+                return
             dx = self.target_x - self.x
             dy = self.target_y - self.y
 
@@ -102,7 +112,7 @@ class Tank:
 
     def can_move_to(self, new_x, new_y):
         """Проверка, может ли танк переместиться в новую позицию"""
-        if not hasattr(self, 'game_frame'):
+        if not hasattr(self, 'game_frame') or self.game_frame is None:
             return True
 
         gf = self.game_frame
@@ -110,7 +120,7 @@ class Tank:
         col = new_x // self.size
         row = new_y // self.size
 
-        # проверка границ
+        # проверка границ карты
         if col < 0 or col >= gf.map_width or row < 0 or row >= gf.map_height:
             return False
 
@@ -118,9 +128,36 @@ class Tank:
         if (col, row) in gf.steel_blocks:
             return False
 
-        # проверка кирпичей (актуальные, после разрушений)
+        # проверка кирпичей
         if (col, row) in gf.brick_blocks:
             return False
+
+        # игрок не наезжает на врагов
+        if self.tank_type == "player":
+            for enemy in gf.enemies:
+                ex, ey = enemy.get_position()
+                ecol = ex // self.size
+                erow = ey // self.size
+                if (col, row) == (ecol, erow):
+                    return False
+
+        # враг не наезжает на игрока и на других врагов
+        if self.tank_type == "enemy":
+            if gf.player_tank and gf.player_tank.is_alive:
+                px, py = gf.player_tank.get_position()
+                pcol = px // self.size
+                prow = py // self.size
+                if (col, row) == (pcol, prow):
+                    return False
+
+            for enemy in gf.enemies:
+                if enemy is self:
+                    continue
+                ex, ey = enemy.get_position()
+                ecol = ex // self.size
+                erow = ey // self.size
+                if (col, row) == (ecol, erow):
+                    return False
 
         return True
 
@@ -162,5 +199,7 @@ class Tank:
         return self.moving
 
     def destroy(self):
+        self.is_alive = False
         if self.id:
             self.canvas.delete(self.id)
+            self.id = None

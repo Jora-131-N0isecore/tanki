@@ -89,5 +89,28 @@ class Bullet:
             gf.canvas.delete(f"brick_{col}_{row}")
             self.destroy()
             return True
+        if self.owner != gf.player_tank and gf.player_tank and gf.player_tank.is_alive:
+            px, py = gf.player_tank.get_position()
+            distance = ((self.x - px) ** 2 + (self.y - py) ** 2) ** 0.5
+            if distance < gf.cell_size // 2:
+                gf.lose_life()
+                self.destroy()
+                return True
+        for enemy in gf.enemies[:]:
+            if enemy is self.owner:  # пропускаем того, кто выстрелил
+                continue
+
+            ex, ey = enemy.get_position()
+            # проверка по расстоянию (круглое попадание)
+            distance = ((self.x - ex) ** 2 + (self.y - ey) ** 2) ** 0.5
+            if distance < gf.cell_size // 2:  # радиус попадания 20px
+                enemy.destroy()
+                gf.enemies.remove(enemy)
+                gf.enemies_killed += 1
+                self.destroy()
+
+                if gf.enemies_killed >= gf.enemies_total:
+                    gf.victory()
+                return True
 
         return False
