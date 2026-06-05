@@ -3,6 +3,7 @@ import tkinter as tk
 
 class Tank:
     def __init__(self, canvas, x, y, tank_type="player", size=40, speed=3):
+        self.game_frame = None
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -100,23 +101,25 @@ class Tank:
         self.canvas.after(16, self.update_position)
 
     def can_move_to(self, new_x, new_y):
-        #Проверка, может ли танк переместиться в координаты (new_x, new_y)
+        """Проверка, может ли танк переместиться в новую позицию"""
+        if not hasattr(self, 'game_frame'):
+            return True
 
-        # получаем размер карты
-        map_width = getattr(self, 'map_width', 15)
-        map_height = getattr(self, 'map_height', 15)
+        gf = self.game_frame
 
-        # вычисляеn клетку, куда хочет встать танк
         col = new_x // self.size
         row = new_y // self.size
 
         # проверка границ
-        if col < 0 or col >= map_width or row < 0 or row >= map_height:
+        if col < 0 or col >= gf.map_width or row < 0 or row >= gf.map_height:
             return False
 
-        # проверка на стальные блоки
-        steel_blocks = getattr(self, 'steel_blocks', [])
-        if (col, row) in steel_blocks:
+        # проверка стали
+        if (col, row) in gf.steel_blocks:
+            return False
+
+        # проверка кирпичей (актуальные, после разрушений)
+        if (col, row) in gf.brick_blocks:
             return False
 
         return True

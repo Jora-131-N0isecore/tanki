@@ -10,8 +10,8 @@ root = tk.Tk()
 интересно это ктото кроме меня будет читать
 """
 levels = {
-    1: {"bricks": [],
-         "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),  # стена из стали
+    1: {"bricks": [(5,5), (5,6), (5,7), (6,5), (6,6), (6,7), (7,5)],
+         "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),
                   (2,12), (3,12), (4,12), (5,12), (6,12)],
         "eagle": (10, 10)},
     2: {"bricks": [],
@@ -32,17 +32,26 @@ class GameFrame(tk.Frame):
         self.on_back_callback = on_back_callback
 
         # размеры поля
-        self.cell_size = 40  # размер одной клетки в пикселях
+        self.cell_size = 40
         self.map_width = 15
         self.map_height = 15
+
+        # ИНИЦИАЛИЗАЦИЯ СПИСКОВ ДО create_map
+        self.brick_blocks = []
+        self.steel_blocks = []
+        self.bullets = []
+
+        # настройки стрельбы
+        self.can_shoot = True
+        self.shoot_delay = 1000
+
+        # текстуры
         self.steel_texture = None
+        self.brick_texture = None
 
         self.create_widgets()
         self.load_textures()
         self.create_map()
-        self.bullets = []
-        self.can_shoot = True
-        self.shoot_delay = 1000
 
     def create_widgets(self):
         # верхняя панель с информацией
@@ -77,7 +86,7 @@ class GameFrame(tk.Frame):
         self.canvas.bind_all("<space>", lambda e: self.shoot())
 
     def create_map(self):
-        # временная сетка чтобы откладка была удобнеэ
+        # временная сетка для отладки
         for row in range(self.map_height):
             for col in range(self.map_width):
                 x1 = col * self.cell_size
@@ -85,41 +94,48 @@ class GameFrame(tk.Frame):
                 x2 = x1 + self.cell_size
                 y2 = y1 + self.cell_size
 
-                # временно просто клетки с границами
                 self.canvas.create_rectangle(
                     x1, y1, x2, y2,
                     outline="gray",
                     fill="darkgreen"
                 )
 
-        # TODO: позже добавлю тут отрисовку кирпичей, стали и орла
+        # ИНИЦИАЛИЗАЦИЯ СПИСКОВ (вынеси за пределы циклов!)
+        self.brick_blocks = []
+        self.steel_blocks = []
+
+        # создание танка
         self.player_tank = Tank(self.canvas, 300, 300, tank_type="player", size=40)
+        self.player_tank.game_frame = self
         self.player_tank.map_width = self.map_width
         self.player_tank.map_height = self.map_height
-        self.player_tank.steel_blocks = self.level_data.get("steel", [])
 
+        # отрисовка стали
         for col, row in self.level_data.get("steel", []):
+            self.steel_blocks.append((col, row))
             x1 = col * self.cell_size
             y1 = row * self.cell_size
-            x2 = x1 + self.cell_size
-            y2 = y1 + self.cell_size
-
-
-            self.canvas.create_image(
-                x1 + self.cell_size // 2,
-                y1 + self.cell_size // 2,
-                image=self.steel_texture,
-                anchor="center"
+            if self.steel_texture:
+                self.canvas.create_image(
+                    x1 + self.cell_size // 2,
+                    y1 + self.cell_size // 2,
+                    image=self.steel_texture,
+                    anchor="center"
                 )
+
+        # отрисовка кирпичей
         for col, row in self.level_data.get("bricks", []):
+            self.brick_blocks.append((col, row))
             x1 = col * self.cell_size
             y1 = row * self.cell_size
             if self.brick_texture:
-                self.canvas.create_image(x1 + self.cell_size // 2, y1 + self.cell_size // 2, image=self.brick_texture,
-                                         anchor="center")
-            else:
-                self.canvas.create_rectangle(x1, y1, x1 + self.cell_size, y1 + self.cell_size, fill="brown",
-                                             outline="darkbrown")
+                self.canvas.create_image(
+                    x1 + self.cell_size // 2,
+                    y1 + self.cell_size // 2,
+                    image=self.brick_texture,
+                    anchor="center",
+                    tags=(f"brick_{col}_{row}",)
+                )
 
 
     def load_textures(self):
@@ -139,6 +155,7 @@ class GameFrame(tk.Frame):
         direction = self.player_tank.get_direction()
 
         bullet = Bullet(self.canvas, x, y, direction, owner=self.player_tank)
+        bullet.game_frame = self  # передаём ссылку
         self.bullets.append(bullet)
 
         # таймер для перезарядки
