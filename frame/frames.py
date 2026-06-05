@@ -1,5 +1,5 @@
 import tkinter as tk
-from tank import Tank
+from .tank import Tank
 
 
 root = tk.Tk()
@@ -9,8 +9,12 @@ root = tk.Tk()
 интересно это ктото кроме меня будет читать
 """
 levels = {
-    1: {"bricks": [], "steel": [], "eagle": (10, 10)},
-    2: {"bricks": [], "steel": [], "eagle": (10, 10)},
+    1: {"bricks": [],
+         "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),  # стена из стали
+                  (2,12), (3,12), (4,12), (5,12), (6,12)], "eagle": (10, 10)},
+    2: {"bricks": [], "steel": [
+        (1,1), (2,2)
+    ], "eagle": (10, 10)},
     3: {"bricks": [], "steel": [], "eagle": (10, 10)},
     4: {"bricks": [], "steel": [], "eagle": (10, 10)},
     5: {"bricks": [], "steel": [], "eagle": (10, 10)},
@@ -29,7 +33,10 @@ class GameFrame(tk.Frame):
         self.cell_size = 40  # размер одной клетки в пикселях
         self.map_width = 15
         self.map_height = 15
+        self.steel_texture = None
+
         self.create_widgets()
+        self.load_textures()
         self.create_map()
 
     def create_widgets(self):
@@ -44,7 +51,7 @@ class GameFrame(tk.Frame):
                   command=self.on_back_callback,
                   bg="gray", fg="white").pack(side="right", padx=20)
 
-        # игровое поле (canvas)
+        # игровое поле
         self.canvas = tk.Canvas(
             self,
             width=self.map_width * self.cell_size,
@@ -81,6 +88,26 @@ class GameFrame(tk.Frame):
 
         # TODO: позже добавлю тут отрисовку кирпичей, стали и орла
         self.player_tank = Tank(self.canvas, 300, 300, tank_type="player", size=40)
+        self.player_tank.map_width = self.map_width
+        self.player_tank.map_height = self.map_height
+        self.player_tank.steel_blocks = self.level_data.get("steel", [])
+
+        for col, row in self.level_data.get("steel", []):
+            x1 = col * self.cell_size
+            y1 = row * self.cell_size
+            x2 = x1 + self.cell_size
+            y2 = y1 + self.cell_size
+
+
+            self.canvas.create_image(
+                x1 + self.cell_size // 2,
+                y1 + self.cell_size // 2,
+                image=self.steel_texture,
+                anchor="center"
+                )
+
+    def load_textures(self):
+        self.steel_texture = tk.PhotoImage(file="frame/images/steel.png")
 
 
 def show_level_settings():
@@ -118,9 +145,9 @@ def create_window():
         root.destroy()
 
     #тут типа подгрузка картинок крутых сам рисовал
-    button_img = tk.PhotoImage(file="images/button.png")
-    logo_img = tk.PhotoImage(file="images/logo.png")
-    bok_img = tk.PhotoImage(file="images/bok.png")
+    button_img = tk.PhotoImage(file="frame/images/button.png")
+    logo_img = tk.PhotoImage(file="frame/images/logo.png")
+    bok_img = tk.PhotoImage(file="frame/images/bok.png")
 
     #крутое главное меню
     MainMenu = tk.Frame(root, bg="Black")
@@ -161,11 +188,7 @@ def create_window():
         btn.pack(pady=5)
     tk.Button(level_selection_frame, text="Назад", command=show_main2).pack(pady=20)
 
-    """
-    !!!!Внимание аникдот 
-    Настоящий десантник способен остановить танк с помощью малой сапёрной лопатки, 
-    а при наличии большой - и закопать.
-    """
+
     root.mainloop()
 
 

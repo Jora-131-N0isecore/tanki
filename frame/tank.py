@@ -2,7 +2,7 @@ import tkinter as tk
 
 
 class Tank:
-    def __init__(self, canvas, x, y, tank_type="player", size=40, speed=8):
+    def __init__(self, canvas, x, y, tank_type="player", size=40, speed=3):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -32,7 +32,7 @@ class Tank:
         self.textures = {}
         for direction in directions:
             self.textures[direction] = tk.PhotoImage(
-                file=f"images/{prefix}_{direction}.png"
+                file=f"frame/images/{prefix}_{direction}.png"
             )
 
     def draw(self):
@@ -53,22 +53,30 @@ class Tank:
     def update_position(self):
         if not self.moving:
             if self.move_up_flag:
-                self.target_y = self.y - self.size
-                self.direction = "up"
-                self.moving = True
+                new_y = self.y - self.size
+                if self.can_move_to(self.x, new_y):
+                    self.target_y = new_y
+                    self.direction = "up"
+                    self.moving = True
             elif self.move_down_flag:
-                self.target_y = self.y + self.size
-                self.direction = "down"
-                self.moving = True
+                new_y = self.y + self.size
+                if self.can_move_to(self.x, new_y):
+                    self.target_y = new_y
+                    self.direction = "down"
+                    self.moving = True
             elif self.move_left_flag:
-                self.target_x = self.x - self.size
-                self.direction = "left"
-                self.moving = True
+                new_x = self.x - self.size
+                if self.can_move_to(new_x, self.y):
+                    self.target_x = new_x
+                    self.direction = "left"
+                    self.moving = True
             elif self.move_right_flag:
-                self.target_x = self.x + self.size
-                self.direction = "right"
-                self.moving = True
-            self.draw()
+                new_x = self.x + self.size
+                if self.can_move_to(new_x, self.y):
+                    self.target_x = new_x
+                    self.direction = "right"
+                    self.moving = True
+
 
         if self.moving:
             dx = self.target_x - self.x
@@ -90,6 +98,28 @@ class Tank:
             self.draw()
 
         self.canvas.after(16, self.update_position)
+
+    def can_move_to(self, new_x, new_y):
+        #Проверка, может ли танк переместиться в координаты (new_x, new_y)
+
+        # получаем размер карты
+        map_width = getattr(self, 'map_width', 15)
+        map_height = getattr(self, 'map_height', 15)
+
+        # вычисляеn клетку, куда хочет встать танк
+        col = new_x // self.size
+        row = new_y // self.size
+
+        # проверка границ
+        if col < 0 or col >= map_width or row < 0 or row >= map_height:
+            return False
+
+        # проверка на стальные блоки
+        steel_blocks = getattr(self, 'steel_blocks', [])
+        if (col, row) in steel_blocks:
+            return False
+
+        return True
 
     def start_move_up(self):
         if not self.moving:
