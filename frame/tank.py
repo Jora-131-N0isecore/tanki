@@ -11,61 +11,46 @@ class Tank:
         self.speed = speed
         self.direction = "up"
         self.id = None
-
-
-        # Флаги движения
-        self.move_up_flag = False
-        self.move_down_flag = False
-        self.move_left_flag = False
-        self.move_right_flag = False
         self.moving = False
         self.target_x = x
         self.target_y = y
 
-        self.texture = None
-        if tank_type == "player":
-                self.texture = tk.PhotoImage(file="images/player_tank.png")
+        self.move_up_flag = False
+        self.move_down_flag = False
+        self.move_left_flag = False
+        self.move_right_flag = False
 
+        self.load_textures()
         self.draw()
         self.start_movement()
 
-    """
-    тут времянка по текстурам
-    нету танка будет квадрат такое вот импортозамещение 
-    
-    """
-    def draw(self):
+    def load_textures(self):
+        #Загрузка текстур для всех направлений
+        prefix = "player_tank" if self.tank_type == "player" else "enemy_tank"
 
+        directions = ["up", "down", "left", "right"]
+        self.textures = {}
+        for direction in directions:
+            self.textures[direction] = tk.PhotoImage(
+                file=f"images/{prefix}_{direction}.png"
+            )
+
+    def draw(self):
+        #Отрисовка танка с учётом направления
         if self.id:
             self.canvas.delete(self.id)
 
-        if self.texture:
-            # Если есть текстура
-            self.id = self.canvas.create_image(
-                self.x, self.y,
-                image=self.texture,
-                anchor="center"
-            )
-        else:
-            # Иначе квадрат
-            x1 = self.x - self.size // 2
-            y1 = self.y - self.size // 2
-            x2 = self.x + self.size // 2
-            y2 = self.y + self.size // 2
-
-            color = "green" if self.tank_type == "player" else "red"
-            self.id = self.canvas.create_rectangle(
-                x1, y1, x2, y2,
-                fill=color,
-                outline="black"
-            )
+        texture = self.textures[self.direction]
+        self.id = self.canvas.create_image(
+            self.x, self.y,
+            image=texture,
+            anchor="center"
+        )
 
     def start_movement(self):
         self.update_position()
 
     def update_position(self):
-        #Обновляем позицию с анимацией между клеткамb
-
         if not self.moving:
             if self.move_up_flag:
                 self.target_y = self.y - self.size
@@ -83,6 +68,7 @@ class Tank:
                 self.target_x = self.x + self.size
                 self.direction = "right"
                 self.moving = True
+            self.draw()
 
         if self.moving:
             dx = self.target_x - self.x
@@ -105,7 +91,6 @@ class Tank:
 
         self.canvas.after(16, self.update_position)
 
-    # Методы управления
     def start_move_up(self):
         if not self.moving:
             self.move_up_flag = True
@@ -137,21 +122,12 @@ class Tank:
     def get_position(self):
         return self.x, self.y
 
-    def get_grid_position(self):
-        return self.x // self.size, self.y // self.size
-
     def get_direction(self):
         return self.direction
 
     def is_moving(self):
         return self.moving
 
-    """
-    надобудет движение сделать помедленей
-    ну и повороты добавить
-    """
-
     def destroy(self):
-        #Удаление танка с поля
         if self.id:
             self.canvas.delete(self.id)
