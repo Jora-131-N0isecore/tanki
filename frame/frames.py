@@ -49,11 +49,20 @@ class GameFrame(tk.Frame):
         self.steel_texture = None
         self.brick_texture = None
 
+        self.lives = 3
+
         self.create_widgets()
         self.load_textures()
         self.create_map()
 
     def create_widgets(self):
+        top_frame = tk.Frame(self, bg="black")
+        top_frame.pack(fill="x", pady=5)
+
+        self.lives_label = tk.Label(top_frame, text=f"Жизни: {self.lives}",
+                                    font=("Arial", 14), bg="black", fg="red")
+        self.lives_label.pack(side="left", padx=20)
+
         # верхняя панель с информацией
         top_frame = tk.Frame(self, bg="black")
         top_frame.pack(fill="x", pady=5)
@@ -84,6 +93,8 @@ class GameFrame(tk.Frame):
         self.canvas.bind_all("<KeyPress-Right>", lambda e: self.player_tank.start_move_right())
         self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
         self.canvas.bind_all("<space>", lambda e: self.shoot())
+
+        self.canvas.bind_all("<h>", lambda e: self.lose_life())
 
     def create_map(self):
         # временная сетка для отладки
@@ -163,6 +174,80 @@ class GameFrame(tk.Frame):
 
     def reset_shoot(self):
         self.can_shoot = True
+
+    def respawn_player(self):
+        """Возрождает танк игрока после потери жизни"""
+        if self.lives <= 0:
+            self.game_over()
+            return
+
+        # удаляем старый танк
+        if hasattr(self, 'player_tank') and self.player_tank:
+            self.player_tank.destroy()
+
+        # создаём новый танк в центре
+        self.player_tank = Tank(self.canvas, 300, 300, tank_type="player", size=40, speed=3)
+        self.player_tank.game_frame = self
+
+        # перепривязываем управление
+        self.canvas.bind_all("<KeyPress-Up>", lambda e: self.player_tank.start_move_up())
+        self.canvas.bind_all("<KeyRelease-Up>", lambda e: self.player_tank.stop_move_up())
+        self.canvas.bind_all("<KeyPress-Down>", lambda e: self.player_tank.start_move_down())
+        self.canvas.bind_all("<KeyRelease-Down>", lambda e: self.player_tank.stop_move_down())
+        self.canvas.bind_all("<KeyPress-Left>", lambda e: self.player_tank.start_move_left())
+        self.canvas.bind_all("<KeyRelease-Left>", lambda e: self.player_tank.stop_move_left())
+        self.canvas.bind_all("<KeyPress-Right>", lambda e: self.player_tank.start_move_right())
+        self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
+
+        self.canvas.bind_all("<h>", lambda e: self.lose_life())
+
+        # защита на 1 секунду после респавна
+        self.invincible_frames = 60
+        self.canvas.after(16, self.update_invincibility)
+
+    def update_lives_display(self):
+        """Обновляет отображение жизней на панели"""
+        if hasattr(self, 'lives_label'):
+            self.lives_label.config(text=f"Жизни: {self.lives}")
+
+    def update_invincibility(self):
+        """Обновляет состояние неуязвимости"""
+        if hasattr(self, 'invincible_frames') and self.invincible_frames > 0:
+            self.invincible_frames -= 1
+            # мигание танка (позже добавим)
+            self.canvas.after(16, self.update_invincibility)
+
+    def lose_life(self):
+        """Потеря одной жизни"""
+        self.lives -= 1
+        self.update_lives_display()
+
+        if self.lives <= 0:
+            self.game_over()
+        else:
+            self.respawn_player()
+
+    def game_over(self):
+        """Конец игры"""
+        # удаляем танк
+        if hasattr(self, 'player_tank') and self.player_tank:
+            self.player_tank.destroy()
+
+        # очищаем пули
+        for bullet in self.bullets:
+            bullet.destroy()
+        self.bullets.clear()
+
+        # показываем сообщение
+        self.canvas.create_text(
+            self.canvas.winfo_width() // 2,
+            self.canvas.winfo_height() // 2,
+            text="ПОРАЖЕНИЕ\nНажмите назад в меню",
+            font=("Arial", 24),
+            fill="red",
+            anchor="center",
+            justify="center"
+        )
 
 
 def show_level_settings():
