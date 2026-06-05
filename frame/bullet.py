@@ -82,6 +82,10 @@ class Bullet:
         if (col, row) in gf.steel_blocks:
             self.destroy()
             return True
+        if (col, row) == gf.eagle_position:
+            gf.eagle_destroyed()
+            self.destroy()
+            return True
 
         # проверка кирпичей
         if (col, row) in gf.brick_blocks:

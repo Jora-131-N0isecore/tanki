@@ -49,6 +49,9 @@ class GameFrame(tk.Frame):
         # текстуры
         self.steel_texture = None
         self.brick_texture = None
+        self.eagle_texture = None
+        self.eagle_position = None
+        self.eagle_id = None
 
         self.lives = 3
 
@@ -156,10 +159,24 @@ class GameFrame(tk.Frame):
                     anchor="center",
                     tags=(f"brick_{col}_{row}",)
                 )
+        eagle_pos = self.level_data.get("eagle")
+        if eagle_pos:
+            col, row = eagle_pos
+            self.eagle_position = (col, row)
+            x1 = col * self.cell_size
+            y1 = row * self.cell_size
+            self.eagle_id = self.canvas.create_image(
+                x1 + self.cell_size // 2,
+                y1 + self.cell_size // 2,
+                image=self.eagle_texture,
+                anchor="center",
+                tags=("eagle",)
+            )
         self.start_enemy_spawn()
 
 
     def load_textures(self):
+        self.eagle_texture = tk.PhotoImage(file="frame/images/eagle.png")
         self.steel_texture = tk.PhotoImage(file="frame/images/steel.png")
         self.brick_texture = tk.PhotoImage(file="frame/images/brick.png")
 
@@ -277,6 +294,40 @@ class GameFrame(tk.Frame):
             fill="red",
             anchor="center",
             justify="center"
+        )
+
+    def eagle_destroyed(self):
+        """Орёл уничтожен"""
+        # останавливаем спавн врагов
+        self.enemies_total = 0
+        self.enemies_killed = 0
+        self.enemies_spawned = 100  # чтобы новые не появлялись
+
+        # удаляем орла с канваса
+        if self.eagle_id:
+            self.canvas.delete(self.eagle_id)
+            self.eagle_id = None
+
+        # удаляем игрока
+        if hasattr(self, 'player_tank') and self.player_tank:
+            self.player_tank.destroy()
+
+        # удаляем всех врагов
+        for enemy in self.enemies[:]:
+            enemy.destroy()
+        self.enemies.clear()
+
+        # удаляем все пули
+        for bullet in self.bullets[:]:
+            bullet.destroy()
+        self.bullets.clear()
+
+        # сообщение о поражении
+        self.canvas.create_text(
+            300, 300,
+            text="ОРЁЛ УНИЧТОЖЕН!\nИГРА ОКОНЧЕНА",
+            font=("Arial", 24),
+            fill="red"
         )
 
     def start_enemy_spawn(self):
