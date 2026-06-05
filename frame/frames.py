@@ -1,5 +1,6 @@
 import tkinter as tk
 from .tank import Tank
+from .bullet import Bullet
 
 
 root = tk.Tk()
@@ -11,10 +12,11 @@ root = tk.Tk()
 levels = {
     1: {"bricks": [],
          "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),  # стена из стали
-                  (2,12), (3,12), (4,12), (5,12), (6,12)], "eagle": (10, 10)},
-    2: {"bricks": [], "steel": [
-        (1,1), (2,2)
-    ], "eagle": (10, 10)},
+                  (2,12), (3,12), (4,12), (5,12), (6,12)],
+        "eagle": (10, 10)},
+    2: {"bricks": [],
+        "steel": [(1,1), (2,2)],
+        "eagle": (10, 10)},
     3: {"bricks": [], "steel": [], "eagle": (10, 10)},
     4: {"bricks": [], "steel": [], "eagle": (10, 10)},
     5: {"bricks": [], "steel": [], "eagle": (10, 10)},
@@ -38,6 +40,9 @@ class GameFrame(tk.Frame):
         self.create_widgets()
         self.load_textures()
         self.create_map()
+        self.bullets = []
+        self.can_shoot = True
+        self.shoot_delay = 1000
 
     def create_widgets(self):
         # верхняя панель с информацией
@@ -69,6 +74,7 @@ class GameFrame(tk.Frame):
         self.canvas.bind_all("<KeyRelease-Left>", lambda e: self.player_tank.stop_move_left())
         self.canvas.bind_all("<KeyPress-Right>", lambda e: self.player_tank.start_move_right())
         self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
+        self.canvas.bind_all("<space>", lambda e: self.shoot())
 
     def create_map(self):
         # временная сетка чтобы откладка была удобнеэ
@@ -105,9 +111,41 @@ class GameFrame(tk.Frame):
                 image=self.steel_texture,
                 anchor="center"
                 )
+        for col, row in self.level_data.get("bricks", []):
+            x1 = col * self.cell_size
+            y1 = row * self.cell_size
+            if self.brick_texture:
+                self.canvas.create_image(x1 + self.cell_size // 2, y1 + self.cell_size // 2, image=self.brick_texture,
+                                         anchor="center")
+            else:
+                self.canvas.create_rectangle(x1, y1, x1 + self.cell_size, y1 + self.cell_size, fill="brown",
+                                             outline="darkbrown")
+
 
     def load_textures(self):
         self.steel_texture = tk.PhotoImage(file="frame/images/steel.png")
+        self.brick_texture = tk.PhotoImage(file="frame/images/brick.png")
+
+    def shoot(self):
+        if not self.can_shoot:
+            return
+
+        if not hasattr(self, 'player_tank'):
+            return
+
+        self.can_shoot = False
+
+        x, y = self.player_tank.get_position()
+        direction = self.player_tank.get_direction()
+
+        bullet = Bullet(self.canvas, x, y, direction, owner=self.player_tank)
+        self.bullets.append(bullet)
+
+        # таймер для перезарядки
+        self.canvas.after(self.shoot_delay, self.reset_shoot)
+
+    def reset_shoot(self):
+        self.can_shoot = True
 
 
 def show_level_settings():
