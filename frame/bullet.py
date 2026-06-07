@@ -64,7 +64,7 @@ class Bullet:
         return self.x, self.y
 
     def check_collision(self):
-        """Проверка столкновения с блоками через GameFrame"""
+        #Проверка столкновения с блоками
         if self.game_frame is None:
             return False
 
@@ -105,7 +105,7 @@ class Bullet:
                 continue
 
             ex, ey = enemy.get_position()
-            # проверка по расстоянию (круглое попадание)
+            # проверка по расстоянию
             distance = ((self.x - ex) ** 2 + (self.y - ey) ** 2) ** 0.5
             if distance < gf.cell_size // 2:  # радиус попадания 20px
                 gf.score_system.add_points(100)

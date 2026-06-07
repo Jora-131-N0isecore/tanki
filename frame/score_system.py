@@ -7,7 +7,7 @@ class ScoreSystem:
         self.load_records()
 
     def load_records(self):
-        """Загружает рекорды из файла"""
+        #Загружает рекорды из файла
         try:
             with open(self.filename, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -19,7 +19,7 @@ class ScoreSystem:
             self.records = {}
 
     def save_records(self):
-        """Сохраняет рекорды в файл"""
+        #Сохраняет рекорды в файл
         with open(self.filename, 'w', encoding='utf-8') as f:
             for level, score in self.records.items():
                 f.write(f"{level}:{score}\n")
@@ -31,7 +31,7 @@ class ScoreSystem:
         self.current_score += points
 
     def check_and_save_record(self):
-        """Проверяет и сохраняет рекорд для текущего уровня"""
+        #Проверяет и сохраняет рекорд для текущего уровня
         if self.current_level not in self.records or self.current_score > self.records[self.current_level]:
             self.records[self.current_level] = self.current_score
             self.save_records()

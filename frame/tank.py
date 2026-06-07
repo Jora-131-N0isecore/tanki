@@ -27,7 +27,7 @@ class Tank:
         self.start_movement()
 
     def load_textures(self):
-        """Загрузка текстур для всех направлений"""
+        #Загрузка текстур для всех направлений
         if self.tank_type == "player":
             prefix = "player_tank"
         else:
@@ -111,7 +111,7 @@ class Tank:
         self.canvas.after(16, self.update_position)
 
     def can_move_to(self, new_x, new_y):
-        """Проверка, может ли танк переместиться в новую позицию"""
+        #Проверка, может ли танк переместиться в новую позицию
         if not hasattr(self, 'game_frame') or self.game_frame is None:
             return True
 

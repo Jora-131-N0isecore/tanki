@@ -7,22 +7,75 @@ import random
 
 root = tk.Tk()
 
-"""
-тут типа крч да словарь так называемый с данными об уровнях пока пустышка потом сделаю
-интересно это ктото кроме меня будет читать
-"""
 levels = {
-    1: {"bricks": [(5,5), (5,6), (5,7), (6,5), (6,6), (6,7), (7,5)],
-         "steel": [(2,2), (3,2), (4,2), (5,2), (6,2),
-                  (2,12), (3,12), (4,12), (5,12), (6,12)],
-        "eagle": (10, 10),
-        "enemies_total": 10},
-    2: {"bricks": [],
-        "steel": [(1,1), (2,2)],
-        "eagle": (10, 10)},
-    3: {"bricks": [], "steel": [], "eagle": (10, 10)},
-    4: {"bricks": [], "steel": [], "eagle": (10, 10)},
-    5: {"bricks": [], "steel": [], "eagle": (10, 10)},
+    1: {
+        "bricks": [
+            (5,5), (5,6), (5,7), (5,8),
+            (6,5), (6,6), (6,7), (6,8),
+            (7,5), (7,6),
+            (8,5), (8,6), (8,7), (8,8)
+        ],
+        "steel": [
+            (2,2), (3,2), (4,2), (5,2), (6,2), (7,2), (8,2), (9,2), (10,2), (11,2), (12,2),
+            (2,12), (3,12), (4,12), (5,12), (6,12), (7,12), (8,12), (9,12), (10,12), (11,12), (12,12)
+        ],
+        "eagle": (7, 13),
+        "enemies_total": 10
+    },
+    2: {
+        "bricks": [
+            (3,3), (3,4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10),
+            (11,3), (11,4), (11,5), (11,6), (11,7), (11,8), (11,9), (11,10)
+        ],
+        "steel": [
+            (1,1), (2,1), (12,1), (13,1),
+            (1,13), (2,13), (12,13), (13,13)
+        ],
+        "eagle": (7, 13),
+        "enemies_total": 15
+    },
+    3: {
+        "bricks": [
+            (2,2), (2,3), (2,4), (2,5), (2,6), (2,7), (2,8), (2,9), (2,10), (2,11),
+            (12,2), (12,3), (12,4), (12,5), (12,6), (12,7), (12,8), (12,9), (12,10), (12,11)
+        ],
+        "steel": [
+            (5,2), (6,2), (7,2), (8,2), (9,2),
+            (5,12), (6,12), (7,12), (8,12), (9,12)
+        ],
+        "eagle": (7, 13),
+        "enemies_total": 20
+    },
+    4: {
+        "bricks": [
+            (1,2), (2,2), (3,2), (4,2),
+            (1,3), (2,3), (3,3), (4,3),
+            (10,2), (11,2), (12,2), (13,2),
+            (10,3), (11,3), (12,3), (13,3)
+        ],
+        "steel": [
+            (3,5), (4,5), (5,5), (6,5), (7,5), (8,5), (9,5), (10,5), (11,5),
+            (3,9), (4,9), (5,9), (6,9), (7,9), (8,9), (9,9), (10,9), (11,9)
+        ],
+        "eagle": (7, 13),
+        "enemies_total": 20
+    },
+    5: {
+        "bricks": [
+            (2,2), (2,3), (2,4), (3,2), (3,3), (3,4), (4,2), (4,3), (4,4),
+            (10,2), (10,3), (10,4), (11,2), (11,3), (11,4), (12,2), (12,3), (12,4),
+            (2,10), (2,11), (2,12), (3,10), (3,11), (3,12), (4,10), (4,11), (4,12),
+            (10,10), (10,11), (10,12), (11,10), (11,11), (11,12), (12,10), (12,11), (12,12)
+        ],
+        "steel": [
+            (5,1), (6,1), (7,1), (8,1), (9,1),
+            (5,2), (9,2),
+            (5,13), (6,13), (7,13), (8,13), (9,13),
+            (5,12), (9,12)
+        ],
+        "eagle": (7, 13),
+        "enemies_total": 25
+    }
 }
 
 
@@ -212,7 +265,7 @@ class GameFrame(tk.Frame):
         self.can_shoot = True
 
     def respawn_player(self):
-        """Возрождает танк игрока после потери жизни"""
+        #Возрождает танк игрока после потери жизни
         if self.lives <= 0:
             self.game_over()
             return
@@ -242,19 +295,17 @@ class GameFrame(tk.Frame):
         self.canvas.after(16, self.update_invincibility)
 
     def update_lives_display(self):
-        """Обновляет отображение жизней на панели"""
+        #Обновляет отображение жизней на панели
         if hasattr(self, 'lives_label'):
             self.lives_label.config(text=f"Жизни: {self.lives}")
 
     def update_invincibility(self):
-        """Обновляет состояние неуязвимости"""
+        #Обновляет состояние неуязвимости
         if hasattr(self, 'invincible_frames') and self.invincible_frames > 0:
             self.invincible_frames -= 1
-            # мигание танка (позже добавим)
-            self.canvas.after(16, self.update_invincibility)
 
     def lose_life(self):
-        """Потеря одной жизни"""
+        #Потеря одной жизни
         self.lives -= 1
         self.score_system.add_points(-250)
         self.update_score_display()
@@ -270,7 +321,10 @@ class GameFrame(tk.Frame):
             self.respawn_player()
 
     def game_over(self):
-        """Конец игры"""
+        self.enemies_total = 0
+        self.enemies_killed = 0
+        self.enemies_spawned = 100
+        #Конец игры
         if hasattr(self, 'player_tank') and self.player_tank:
             self.player_tank.destroy()
 
@@ -281,13 +335,6 @@ class GameFrame(tk.Frame):
         for bullet in self.bullets:
             bullet.destroy()
         self.bullets.clear()
-
-        self.canvas.create_text(
-            300, 300,
-            text="ПОРАЖЕНИЕ...\nНажмите 'Назад в меню'",
-            font=("Arial", 24),
-            fill="red"
-        )
 
         # очищаем пули
         for bullet in self.bullets:
@@ -307,13 +354,13 @@ class GameFrame(tk.Frame):
         update_level_records()
 
     def eagle_destroyed(self):
-        """Орёл уничтожен"""
+        #Орёл уничтожен
         # останавливаем спавн врагов
         self.enemies_total = 0
         self.enemies_killed = 0
-        self.enemies_spawned = 100  # чтобы новые не появлялись
+        self.enemies_spawned = 100
 
-        # удаляем орла с канваса
+        # удаляем орла
         if self.eagle_id:
             self.canvas.delete(self.eagle_id)
             self.eagle_id = None
@@ -342,13 +389,13 @@ class GameFrame(tk.Frame):
         update_level_records()
 
     def start_enemy_spawn(self):
-        """Запускает спавн врагов"""
+        #Запускает спавн врагов
         self.spawn_enemy()
         if self.enemies_killed < self.enemies_total:
             self.canvas.after(3000, self.start_enemy_spawn)
 
     def spawn_enemy(self):
-        """Создаёт одного врага"""
+        #Создаёт одного врага
         if self.enemies_killed >= self.enemies_total:
             return
         if self.enemies_spawned >= self.enemies_total:
@@ -360,7 +407,7 @@ class GameFrame(tk.Frame):
         x, y = random.choice(self.spawn_positions)
 
         enemy = Tank(self.canvas, x, y, tank_type="enemy", size=40, speed=2)
-        enemy.game_frame = self  # важно!
+        enemy.game_frame = self
         enemy.direction = "down"
         enemy.draw()
 
@@ -370,7 +417,7 @@ class GameFrame(tk.Frame):
         self.enemies_spawned += 1
 
     def start_enemy_ai(self, enemy):
-        """ИИ врага"""
+        #ИИ врага
 
 
         def ai_loop():
@@ -405,7 +452,7 @@ class GameFrame(tk.Frame):
         ai_loop()
 
     def enemy_shoot(self, enemy):
-        """Выстрел врага"""
+        #Выстрел врага
         if not enemy or enemy not in self.enemies:
             return
 
@@ -417,7 +464,7 @@ class GameFrame(tk.Frame):
         self.bullets.append(bullet)
 
     def victory(self):
-        """Победа на уровне"""
+        #Победа на уровне
         self.score_system.check_and_save_record()
         update_level_records()
         # очищаем врагов
@@ -470,8 +517,7 @@ def show_main2():
     level_selection_frame.pack_forget()
     MainMenu.pack(fill="both", expand=True)
 def update_level_records():
-    global level_buttons
-    """Обновляет текст на кнопках уровней с новыми рекордами"""
+    #Обновляет текст на кнопках уровней с новыми рекордами
     temp_score = ScoreSystem()
     for i, btn in enumerate(level_buttons, 1):
         record = temp_score.get_record_for_level(i)
@@ -486,12 +532,12 @@ def create_window():
     def close_window():
         root.destroy()
 
-    #тут типа подгрузка картинок крутых сам рисовал
+    #тут подгрузка картинок
     button_img = tk.PhotoImage(file="frame/images/button.png")
     logo_img = tk.PhotoImage(file="frame/images/logo.png")
     bok_img = tk.PhotoImage(file="frame/images/bok.png")
 
-    #крутое главное меню
+    #главное меню
     MainMenu = tk.Frame(root, bg="Black")
 
     left_bok = tk.Label(MainMenu, image=bok_img, bg="black")
