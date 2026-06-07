@@ -108,6 +108,8 @@ class Bullet:
             # проверка по расстоянию (круглое попадание)
             distance = ((self.x - ex) ** 2 + (self.y - ey) ** 2) ** 0.5
             if distance < gf.cell_size // 2:  # радиус попадания 20px
+                gf.score_system.add_points(100)
+                gf.update_score_display()
                 enemy.destroy()
                 gf.enemies.remove(enemy)
                 gf.enemies_killed += 1

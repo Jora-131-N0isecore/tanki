@@ -1,7 +1,9 @@
 import tkinter as tk
 from .tank import Tank
 from .bullet import Bullet
+from .score_system import ScoreSystem
 import random
+
 
 root = tk.Tk()
 
@@ -37,7 +39,7 @@ class GameFrame(tk.Frame):
         self.map_width = 15
         self.map_height = 15
 
-        # ИНИЦИАЛИЗАЦИЯ СПИСКОВ ДО create_map
+
         self.brick_blocks = []
         self.steel_blocks = []
         self.bullets = []
@@ -54,6 +56,9 @@ class GameFrame(tk.Frame):
         self.eagle_id = None
 
         self.lives = 3
+
+        self.score_system = ScoreSystem()
+        self.score_system.set_level(level_num)
 
         # враги
         self.enemies = []
@@ -74,6 +79,9 @@ class GameFrame(tk.Frame):
         self.lives_label = tk.Label(top_frame, text=f"Жизни: {self.lives}",
                                     font=("Arial", 14), bg="black", fg="red")
         self.lives_label.pack(side="left", padx=20)
+        self.score_label = tk.Label(top_frame, text=f"Очки: 0",
+                                    font=("Arial", 14), bg="black", fg="yellow")
+        self.score_label.pack(side="left", padx=20)
 
         # верхняя панель с информацией
         top_frame = tk.Frame(self, bg="black")
@@ -106,7 +114,7 @@ class GameFrame(tk.Frame):
         self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
         self.canvas.bind_all("<space>", lambda e: self.shoot())
 
-        self.canvas.bind_all("<h>", lambda e: self.lose_life())
+
 
     def create_map(self):
         # временная сетка для отладки
@@ -123,7 +131,6 @@ class GameFrame(tk.Frame):
                     fill="darkgreen"
                 )
 
-        # ИНИЦИАЛИЗАЦИЯ СПИСКОВ (вынеси за пределы циклов!)
         self.brick_blocks = []
         self.steel_blocks = []
 
@@ -228,7 +235,7 @@ class GameFrame(tk.Frame):
         self.canvas.bind_all("<KeyPress-Right>", lambda e: self.player_tank.start_move_right())
         self.canvas.bind_all("<KeyRelease-Right>", lambda e: self.player_tank.stop_move_right())
 
-        self.canvas.bind_all("<h>", lambda e: self.lose_life())
+
 
         # защита на 1 секунду после респавна
         self.invincible_frames = 60
@@ -249,6 +256,8 @@ class GameFrame(tk.Frame):
     def lose_life(self):
         """Потеря одной жизни"""
         self.lives -= 1
+        self.score_system.add_points(-250)
+        self.update_score_display()
         self.update_lives_display()
 
         if self.lives <= 0:
@@ -295,6 +304,7 @@ class GameFrame(tk.Frame):
             anchor="center",
             justify="center"
         )
+        update_level_records()
 
     def eagle_destroyed(self):
         """Орёл уничтожен"""
@@ -329,6 +339,7 @@ class GameFrame(tk.Frame):
             font=("Arial", 24),
             fill="red"
         )
+        update_level_records()
 
     def start_enemy_spawn(self):
         """Запускает спавн врагов"""
@@ -407,10 +418,17 @@ class GameFrame(tk.Frame):
 
     def victory(self):
         """Победа на уровне"""
+        self.score_system.check_and_save_record()
+        update_level_records()
         # очищаем врагов
         for enemy in self.enemies:
             enemy.destroy()
         self.enemies.clear()
+
+
+
+        if hasattr(self, 'player_tank') and self.player_tank:
+            self.player_tank.destroy()
 
         # сообщение
         self.canvas.create_text(
@@ -419,6 +437,12 @@ class GameFrame(tk.Frame):
             font=("Arial", 24),
             fill="green"
         )
+
+    def update_score_display(self):
+        if hasattr(self, 'score_label'):
+            self.score_label.config(text=f"Очки: {self.score_system.get_current_score()}")
+
+
 
 
 
@@ -445,7 +469,13 @@ def back_to_level_selection():
 def show_main2():
     level_selection_frame.pack_forget()
     MainMenu.pack(fill="both", expand=True)
-
+def update_level_records():
+    global level_buttons
+    """Обновляет текст на кнопках уровней с новыми рекордами"""
+    temp_score = ScoreSystem()
+    for i, btn in enumerate(level_buttons, 1):
+        record = temp_score.get_record_for_level(i)
+        btn.config(text=f"Уровень {i} (рекорд: {record})")
 
 def create_window():
 
@@ -486,18 +516,23 @@ def create_window():
     #меню выбора уровней
     level_selection_frame = tk.Frame(root, bg="Black")
     tk.Label(level_selection_frame, text="Выбор уровня", font=("Arial", 20), bg="black", fg="white").pack(pady=20)
+    temp_score = ScoreSystem()
+    global level_buttons
+    level_buttons = []  # список для хранения кнопок
 
-    # кнопки уровней 1-5
     for i in range(1, 6):
+        record = temp_score.get_record_for_level(i)
+        btn_text = f"Уровень {i} (рекорд: {record})"
         btn = tk.Button(
             level_selection_frame,
-            text=f"Уровень {i}",
+            text=btn_text,
             font=("Arial", 12),
             command=lambda lvl=i: start_level(lvl),
-            width=15,
+            width=20,
             height=1
         )
         btn.pack(pady=5)
+        level_buttons.append(btn)
     tk.Button(level_selection_frame, text="Назад", command=show_main2).pack(pady=20)
 
 
