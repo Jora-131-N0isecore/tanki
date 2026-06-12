@@ -1,5 +1,13 @@
 import tkinter as tk
+import sys
+import os
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class Bullet:
     def __init__(self, canvas, x, y, direction, size=8, speed=10, owner=None):
@@ -15,7 +23,7 @@ class Bullet:
 
         # загрузка текстуры пули
 
-        self.texture = tk.PhotoImage(file="frame/images/bullet.png")
+        self.texture = tk.PhotoImage(file=resource_path("frame/images/bullet.png"))
 
         self.draw()
         self.move()

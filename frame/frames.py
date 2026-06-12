@@ -3,7 +3,15 @@ from .tank import Tank
 from .bullet import Bullet
 from .score_system import ScoreSystem
 import random
+import sys
+import os
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 root = tk.Tk()
 
@@ -236,9 +244,9 @@ class GameFrame(tk.Frame):
 
 
     def load_textures(self):
-        self.eagle_texture = tk.PhotoImage(file="frame/images/eagle.png")
-        self.steel_texture = tk.PhotoImage(file="frame/images/steel.png")
-        self.brick_texture = tk.PhotoImage(file="frame/images/brick.png")
+        self.steel_texture = tk.PhotoImage(file=resource_path("frame/images/steel.png"))
+        self.brick_texture = tk.PhotoImage(file=resource_path("frame/images/brick.png"))
+        self.eagle_texture = tk.PhotoImage(file=resource_path("frame/images/eagle.png"))
 
     def shoot(self):
         if not self.can_shoot:
@@ -533,9 +541,9 @@ def create_window():
         root.destroy()
 
     #тут подгрузка картинок
-    button_img = tk.PhotoImage(file="frame/images/button.png")
-    logo_img = tk.PhotoImage(file="frame/images/logo.png")
-    bok_img = tk.PhotoImage(file="frame/images/bok.png")
+    button_img = tk.PhotoImage(file=resource_path("frame/images/button.png"))
+    logo_img = tk.PhotoImage(file=resource_path("frame/images/logo.png"))
+    bok_img = tk.PhotoImage(file=resource_path("frame/images/bok.png"))
 
     #главное меню
     MainMenu = tk.Frame(root, bg="Black")

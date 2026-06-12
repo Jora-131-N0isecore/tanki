@@ -1,5 +1,13 @@
 import tkinter as tk
+import sys
+import os
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class Tank:
     def __init__(self, canvas, x, y, tank_type="player", size=40, speed=3):
@@ -37,7 +45,7 @@ class Tank:
         self.textures = {}
         for direction in directions:
             self.textures[direction] = tk.PhotoImage(
-                file=f"frame/images/{prefix}_{direction}.png"
+                file=resource_path(f"frame/images/{prefix}_{direction}.png")
             )
 
     def draw(self):
